@@ -10,8 +10,8 @@ int is_dig(char ch) {
     return '0' <= ch && ch <= '9';
 }
 
-int parse_num(const char* s, int* index) {
-    int res = 0;
+long int parse_num(const char* s, int* index) {
+    long int res = 0;
     int i = *index;
     while(is_dig(s[i])) {
         res = 10 * res + (s[i] - '0');  
@@ -21,10 +21,10 @@ int parse_num(const char* s, int* index) {
     return res;
 }
 
-int* parse_integers(const char* str) {
+long int* parse_integers(const char* str) {
     int i = 0;
     int index = 0;
-    int*nums = (int*)malloc(3 * sizeof(int));
+    long int*nums = (long int*)malloc(3 * sizeof(long int));
     while (str[i] != '\0')
     {
         while(!is_dig(str[i]) && str[i] != '\0') {
@@ -39,13 +39,13 @@ int* parse_integers(const char* str) {
     return nums;
 }
 
-double calc(int lhs, int rhs, char op) {
+float calc(int lhs, int rhs, char op) {
     if (op == '+') {
         return lhs + rhs;
     } else if (op == '-') {
         return lhs - rhs;
     } else if (op == '/') {
-        return (double)lhs / rhs;
+        return (float)lhs / rhs;
     } else if (op == '*') {
         return lhs * rhs;
     }
@@ -67,7 +67,7 @@ char const* exec(char const* s, int* lvl, char* op) {
     return s;
 }
 
-double calc_result(char const* str) {
+double calc_result(char const* str, int use_float) {
     char const* curr = str;
     int lvl1 = 0;
     char op1 = 0; 
@@ -76,51 +76,126 @@ double calc_result(char const* str) {
     int lvl2 = lvl1;
     char op2 = 0; 
     exec(curr, &lvl2, &op2);
-    int* nums = parse_integers(str);
+    long int* nums = parse_integers(str);
 
-    double ans = 0;
+    float ans = 0;
+    long int result =0;
     
-    if (lvl1 > lvl2) {    
-        ans = calc(
-            calc(nums[0], nums[1], op1),
-            nums[2], 
-            op2
-        );
-    } else if (lvl1 < lvl2) {
-        ans = calc(
-            nums[0], 
-            calc(nums[1], nums[2], op2),
-            op1
-        );
-    } else {
-        if (op1 == '/' || op1 == '*') {
+    if (lvl1 > lvl2) {
+        if(use_float==0){
+            result = (long int)(calc(
+                (long int)(calc(nums[0], nums[1], op1)+0.5),
+                nums[2], 
+                op2
+            ) + 0.5);
+        }else{
             ans = calc(
                 calc(nums[0], nums[1], op1),
                 nums[2], 
                 op2
-            );  
-        } else if ((op1 == '+' || op1 == '-') && (op2 == '*' || op2 == '/')) {
+            );
+        }
+    } else if (lvl1 < lvl2) {
+        if(use_float==0){
+            result = (long int)(calc(
+                nums[0], 
+                (long int)(calc(nums[1], nums[2], op2)+0.5),
+                op1
+            )+0.5);
+        } else{
             ans = calc(
                 nums[0], 
                 calc(nums[1], nums[2], op2),
                 op1
-            );  
+            );
+        }
+    } else {
+        if (op1 == '/' || op1 == '*') {
+            if(use_float==0){
+                result = (long int)(calc(
+                    (long int)(calc(nums[0], nums[1], op1)+0.5),
+                    nums[2], 
+                    op2
+                ) + 0.5);
+            }else{
+                ans = calc(
+                    calc(nums[0], nums[1], op1),
+                    nums[2], 
+                    op2
+                );
+            }
+        } else if ((op1 == '+' || op1 == '-') && (op2 == '*' || op2 == '/')) {
+            if(use_float==0){
+                result = (long int)(calc(
+                    nums[0], 
+                    (long int)(calc(nums[1], nums[2], op2)+0.5),
+                    op1
+                )+0.5);
+            } else{
+                ans = calc(
+                    nums[0], 
+                    calc(nums[1], nums[2], op2),
+                    op1
+                );
+            }
         } else {
-            ans = calc(
-                calc(nums[0], nums[1], op1),
-                nums[2], 
-                op2
-            );  
+            if(use_float==0){
+                result = (long int)(calc(
+                    (long int)(calc(nums[0], nums[1], op1)+0.5),
+                    nums[2], 
+                    op2
+                ) + 0.5);
+            }else{
+                ans = calc(
+                    calc(nums[0], nums[1], op1),
+                    nums[2], 
+                    op2
+                );
+            } 
         }
     }
     free(nums);
+    if(use_float == 0){
+        return (double)result;
+    }
     return ans;
 }
 
-int main(int argc, char* argv[]) {
-    if (argc != 2) {
-        return 0;
+int my_str_cmp(const char* str1, const char* str2){
+    while(*str1 && *str2){
+        if(*str1!= *str2){
+            return 0;
+        }
+        str1++;
+        str2++;
     }
-    printf("%f\n", calc_result(argv[1]) );
+    return (*str1==*str2);
+}
+
+int main(int argc, char* argv[]) {
+    int use_float = 0;
+    /*if (argc != 2) {
+        printf("invalid input\n");
+        return -1;
+    }*/
+    const char* exp = NULL;
+
+    for(int i =1; i<argc; i++){
+        if(my_str_cmp(argv[i], "--float")){
+            use_float =1;
+        }else{
+            exp = argv[i];
+        }
+    }
+    long int result;
+    float ans;
+    if(use_float==0){
+        result = ( long int)(calc_result(exp,use_float));
+        printf("%ld\n", result);
+    }else{
+        ans = calc_result(exp,use_float);
+        printf("%.4f\n", ans);
+    }
+
     return 0;
 }
