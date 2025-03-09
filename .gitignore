@@ -1,0 +1,4 @@
+main
+unit-tests
+googletest/
+.vscode/

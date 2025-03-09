@@ -39,13 +39,13 @@ long int* parse_integers(const char* str) {
     return nums;
 }
 
-float calc(int lhs, int rhs, char op) {
+double calc(double lhs, double rhs, char op) {
     if (op == '+') {
         return lhs + rhs;
     } else if (op == '-') {
         return lhs - rhs;
     } else if (op == '/') {
-        return (float)lhs / rhs;
+        return (double)lhs / rhs;
     } else if (op == '*') {
         return lhs * rhs;
     }
@@ -117,7 +117,7 @@ double calc_result(char const* str, int use_float) {
                     nums[2], 
                     op2
                 ) + 0.5);
-            }else{
+            } else {
                 ans = calc(
                     calc(nums[0], nums[1], op1),
                     nums[2], 
@@ -170,32 +170,4 @@ int my_str_cmp(const char* str1, const char* str2){
         str2++;
     }
     return (*str1==*str2);
-}
-
-int main(int argc, char* argv[]) {
-    int use_float = 0;
-    /*if (argc != 2) {
-        printf("invalid input\n");
-        return -1;
-    }*/
-    const char* exp = NULL;
-
-    for(int i =1; i<argc; i++){
-        if(my_str_cmp(argv[i], "--float")){
-            use_float =1;
-        }else{
-            exp = argv[i];
-        }
-    }
-    long int result;
-    float ans;
-    if(use_float==0){
-        result = ( long int)(calc_result(exp,use_float));
-        printf("%ld\n", result);
-    }else{
-        ans = calc_result(exp,use_float);
-        printf("%.4f\n", ans);
-    }
-
-    return 0;
 }
